@@ -175,23 +175,14 @@
   width: 88px;
   height: 88px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #a78bfa, #60a5fa);
-  border: 3px solid var(--accent-border);
-  box-shadow: 0 0 0 4px var(--accent-bg);
+  background: linear-gradient(135deg, #0f0a1e, #1a1030);
+  border: 2px solid var(--accent-border);
+  box-shadow: 0 0 0 4px var(--accent-bg), 0 0 24px rgba(167, 139, 250, 0.2);
   position: relative;
   z-index: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-
-  span {
-    font-size: 36px;
-    font-weight: 800;
-    color: #fff;
-    letter-spacing: -1px;
-    line-height: 1;
-    font-family: var(--heading);
-  }
 }
 
 .creator-badge {

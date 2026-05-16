@@ -33,7 +33,30 @@ function App() {
         <div className="creator-card">
           <div className="creator-glow" />
           <div className="creator-avatar">
-            <span>J</span>
+            <svg viewBox="0 0 80 80" width="54" height="54" aria-hidden="true">
+              <defs>
+                <linearGradient id="ap-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#a78bfa"/>
+                  <stop offset="100%" stopColor="#60a5fa"/>
+                </linearGradient>
+              </defs>
+              {/* Outer ring */}
+              <circle cx="40" cy="40" r="36" fill="none" stroke="url(#ap-grad)" strokeWidth="2" opacity="0.5"/>
+              {/* Aperture blades */}
+              <g fill="url(#ap-grad)" opacity="0.9">
+                <ellipse cx="40" cy="20" rx="7" ry="18" transform="rotate(0 40 40)"/>
+                <ellipse cx="40" cy="20" rx="7" ry="18" transform="rotate(60 40 40)"/>
+                <ellipse cx="40" cy="20" rx="7" ry="18" transform="rotate(120 40 40)"/>
+                <ellipse cx="40" cy="20" rx="7" ry="18" transform="rotate(180 40 40)"/>
+                <ellipse cx="40" cy="20" rx="7" ry="18" transform="rotate(240 40 40)"/>
+                <ellipse cx="40" cy="20" rx="7" ry="18" transform="rotate(300 40 40)"/>
+              </g>
+              {/* Center lens */}
+              <circle cx="40" cy="40" r="10" fill="#0f0f13" opacity="0.95"/>
+              <circle cx="40" cy="40" r="7" fill="none" stroke="url(#ap-grad)" strokeWidth="1.5"/>
+              {/* Inner highlight */}
+              <circle cx="36" cy="36" r="2" fill="white" opacity="0.3"/>
+            </svg>
           </div>
           <div className="creator-badge">✦ Creator</div>
           <h2 className="creator-name">Joy</h2>

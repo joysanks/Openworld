@@ -30,23 +30,27 @@ export default function Navbar() {
           </div>
           <div className="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
             <div className="flex shrink-0 items-center">
-              <a href="#" style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '7px',
-                textDecoration: 'none',
-                fontWeight: 700,
-                fontSize: '18px',
-                letterSpacing: '-0.4px',
-                color: '#fff',
-                fontFamily: 'system-ui, sans-serif',
-              }}>
-                <span style={{ fontSize: '22px', lineHeight: 1 }}>🌍</span>
-                <span>Open<span style={{
-                  background: 'linear-gradient(90deg, #a78bfa, #60a5fa)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                }}>World</span></span>
+              <a href="#" style={{ display: 'flex', alignItems: 'center', gap: '9px', textDecoration: 'none' }}>
+                {/* SVG Logo Mark */}
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+                  <defs>
+                    <linearGradient id="nav-bg" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+                      <stop offset="0%" stopColor="#7c3aed"/>
+                      <stop offset="100%" stopColor="#2563eb"/>
+                    </linearGradient>
+                  </defs>
+                  <circle cx="16" cy="16" r="16" fill="url(#nav-bg)"/>
+                  <circle cx="16" cy="16" r="9" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1"/>
+                  <ellipse cx="16" cy="16" rx="5" ry="9" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1"/>
+                  <line x1="7" y1="16" x2="25" y2="16" stroke="rgba(255,255,255,0.3)" strokeWidth="1"/>
+                  <line x1="8.5" y1="11" x2="23.5" y2="11" stroke="rgba(255,255,255,0.2)" strokeWidth="0.75"/>
+                  <line x1="8.5" y1="21" x2="23.5" y2="21" stroke="rgba(255,255,255,0.2)" strokeWidth="0.75"/>
+                  <circle cx="16" cy="16" r="3" fill="white" opacity="0.9"/>
+                </svg>
+                {/* Wordmark */}
+                <span style={{ fontWeight: 700, fontSize: '17px', letterSpacing: '-0.4px', color: '#fff', fontFamily: 'system-ui, sans-serif', lineHeight: 1 }}>
+                  Open<span style={{ background: 'linear-gradient(90deg, #a78bfa, #60a5fa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>World</span>
+                </span>
               </a>
             </div>
             <div className="hidden sm:ml-6 sm:block">
