@@ -1,0 +1,437 @@
+# OpenWorld — Code Documentation
+
+> **Stack:** React 19 · TypeScript · Vite 8 · Tailwind CSS v4 · Headless UI · Heroicons · Swiper · Vanilla CSS
+
+---
+
+## 1. Project Structure
+
+```
+openworld/
+├── public/
+│   └── icons.svg               # SVG sprite (nav icons)
+├── src/
+│   ├── assets/
+│   │   ├── hero.png
+│   │   ├── react.svg
+│   │   └── vite.svg
+│   ├── components/
+│   │   ├── Navbar.tsx           # Top navigation bar
+│   │   ├── Swiper.tsx           # Image carousel / slider
+│   │   └── PostFeed.tsx         # Infinite-scroll post feed
+│   ├── App.tsx                  # Root component — page layout
+│   ├── App.css                  # Component-level styles
+│   ├── index.css                # Global design tokens & resets
+│   └── main.tsx                 # React DOM entry point
+├── vite.config.ts               # Vite + Tailwind plugin config
+└── package.json
+```
+
+---
+
+## 2. Entry Point — `main.tsx`
+
+```tsx
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import './index.css'        // ← Global styles loaded here (once)
+import App from './App.tsx'
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
+)
+```
+
+**Flow:**
+1. React mounts onto the `#root` div in `index.html`.
+2. `index.css` is imported here so global tokens and Tailwind apply everywhere.
+3. `<App />` is the single root component that renders the entire page.
+
+---
+
+## 3. Global Styles — `index.css`
+
+```css
+@import "tailwindcss";   /* Tailwind v4 — single directive, no config file needed */
+
+:root {
+  --text: ...;
+  --accent: ...;
+  --bg: ...;
+  /* ... CSS custom properties (design tokens) ... */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root { /* dark mode overrides */ }
+}
+```
+
+**Key points:**
+- `@import "tailwindcss"` activates Tailwind v4 via the `@tailwindcss/vite` plugin.
+- CSS variables (e.g. `--accent`, `--bg`, `--border`) are the design token system — all components reference these for consistent theming.
+- Dark mode is handled automatically via `prefers-color-scheme` media query.
+
+---
+
+## 4. Vite Config — `vite.config.ts`
+
+```ts
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
+
+export default defineConfig({
+  plugins: [react(), tailwindcss()],
+});
+```
+
+- `@vitejs/plugin-react` — enables JSX transform and Fast Refresh (HMR).
+- `@tailwindcss/vite` — replaces the old PostCSS setup; processes Tailwind directly in the Vite pipeline.
+
+---
+
+## 5. Root Component — `App.tsx`
+
+```
+App
+ ├── <Navbar />
+ ├── <section id="center">
+ │     └── <SliderSwiper />
+ ├── <div className="ticks" />      ← decorative tick marks
+ ├── <PostFeed />
+ ├── <div className="ticks" />
+ ├── <section id="next-steps">
+ │     ├── #docs  (Portfolio link)
+ │     └── #social (GitHub / Discord / X / Bluesky links)
+ ├── <div className="ticks" />
+ └── <section id="spacer" />
+```
+
+**Page layout order (top → bottom):**
+
+| Section | Component / Element | Purpose |
+|---|---|---|
+| Navigation | `<Navbar />` | Top bar with links & profile |
+| Hero Slider | `<SliderSwiper />` inside `#center` | Image carousel |
+| Post Feed | `<PostFeed />` | Infinite-scroll Instagram-like posts |
+| Footer Info | `#next-steps` | Portfolio & social links |
+| Spacer | `#spacer` | Bottom breathing room |
+
+> **Note:** `useState`, `reactLogo`, and `heroImg` are still imported but not currently used — safe to remove when cleaning up.
+
+---
+
+## 6. Component: `Navbar.tsx`
+
+### Libraries Used
+| Import | Source | Purpose |
+|---|---|---|
+| `Disclosure`, `DisclosureButton`, `DisclosurePanel` | `@headlessui/react` | Accessible collapsible mobile menu |
+| `Menu`, `MenuButton`, `MenuItem`, `MenuItems` | `@headlessui/react` | Accessible dropdown for profile |
+| `Bars3Icon`, `XMarkIcon`, `BellIcon` | `@heroicons/react/24/outline` | SVG icons |
+
+### Data
+
+```ts
+const navigation = [
+  { name: 'Dashboard', href: '#', current: true },
+  { name: 'Team',      href: '#', current: false },
+  // ...
+]
+```
+A plain array of route objects. `current: true` marks the active page.
+
+### Helper Function
+
+```ts
+function classNames(...classes) {
+  return classes.filter(Boolean).join(' ')
+}
+```
+Merges multiple class strings, filtering out falsy values (`undefined`, `false`, `''`). Used to apply conditional Tailwind classes.
+
+### Component Structure
+
+```
+Navbar()
+ └── <Disclosure as="nav">          ← manages open/closed state internally
+       ├── Desktop Nav
+       │     ├── Logo (img)
+       │     └── navigation.map() → <a> links  (uses classNames() for active style)
+       ├── Right Side
+       │     ├── Bell icon button (notifications — not wired up)
+       │     └── <Menu>             ← profile dropdown
+       │           ├── <MenuButton> → avatar image
+       │           └── <MenuItems>  → Your profile / Settings / Sign out
+       └── <DisclosurePanel>        ← mobile menu (visible on sm: breakpoint)
+             └── navigation.map() → <DisclosureButton as="a">
+```
+
+**How `Disclosure` works:**
+Headless UI manages the open/closed boolean state internally. `DisclosureButton` toggles it. `DisclosurePanel` renders only when open. The hamburger/close icon swap uses `group-data-open:hidden` / `group-data-open:block` Tailwind data attributes.
+
+---
+
+## 7. Component: `Swiper.tsx` (`SliderSwiper`)
+
+### Libraries Used
+| Import | Purpose |
+|---|---|
+| `Swiper`, `SwiperSlide` from `swiper/react` | React wrapper for the Swiper carousel |
+| `Navigation`, `Pagination`, `A11y` from `swiper/modules` | Swiper feature modules |
+| `swiper/css`, `swiper/css/navigation`, `swiper/css/pagination` | Swiper's own stylesheet |
+
+### Data
+
+```ts
+const slides = [
+  { img: "https://...", label: "Hero 2" },
+  // ... 5 items total (Unsplash URLs)
+]
+```
+Static array of slide objects. Each has an image URL and a label.
+
+### Component Structure
+
+```
+SliderSwiper()
+ └── <div>                          ← Outer wrapper with explicit width/height (400px)
+       └── <Swiper                  ← carousel root
+             modules={[Navigation, A11y]}
+             slidesPerView={1}
+             loop={true}            ← wraps around to first slide after last
+             navigation             ← shows prev/next arrows
+             pagination             ← shows dot indicators
+           >
+             slides.map() → <SwiperSlide>
+               └── <div>            ← flex centering wrapper
+                     └── <img>      ← the slide image (objectFit: cover)
+```
+
+**Why explicit `width`/`height` on the wrapper?**
+Tailwind's preflight CSS resets all elements, which collapses Swiper's internal layout. Setting `width: "100%"` and `height: "400px"` explicitly on the outer div and `style={{ width: "100%", height: "100%" }}` on `<Swiper>` gives Swiper the fixed dimensions it needs to render correctly.
+
+---
+
+## 8. Component: `PostFeed.tsx`
+
+This is the most complex component. It implements infinite scroll with React hooks.
+
+### TypeScript Interface
+
+```ts
+interface Post {
+  id: number
+  username: string
+  avatar: string
+  image: string
+  caption: string
+  likes: number
+  comments: number
+  time: string
+  liked: boolean   // tracks like state per post
+}
+```
+Defines the shape of every post object in the feed.
+
+### Module-level Constants
+
+```ts
+const UNSPLASH_IMAGES = [...]  // 8 image URLs (cycled via modulo)
+const AVATARS = [...]          // 6 avatar URLs (pravatar.cc)
+const USERNAMES = [...]        // 6 display names
+const CAPTIONS = [...]         // 8 caption strings
+let postIdCounter = 0          // global counter — increments per post generated
+```
+
+These are defined **outside** the component so they persist across renders and `postIdCounter` never resets to 0 on re-render.
+
+### Helper Function: `generatePosts(count)`
+
+```ts
+function generatePosts(count: number): Post[] {
+  return Array.from({ length: count }, () => {
+    postIdCounter++
+    const id = postIdCounter
+    return {
+      id,
+      username: USERNAMES[id % USERNAMES.length],   // cycles through names
+      avatar:   AVATARS[id % AVATARS.length],
+      image:    UNSPLASH_IMAGES[id % UNSPLASH_IMAGES.length],
+      caption:  CAPTIONS[id % CAPTIONS.length],
+      likes:    Math.floor(Math.random() * 9000) + 100,
+      comments: Math.floor(Math.random() * 300) + 5,
+      time:     `${Math.floor(Math.random() * 23) + 1}h ago`,
+      liked:    false,
+    }
+  })
+}
+```
+
+Creates `count` mock `Post` objects. Uses `id % array.length` (modulo) to cycle through the constant arrays so posts always get valid data.
+
+### Hooks Inside `PostFeed()`
+
+#### `useState` — posts list
+
+```ts
+const [posts, setPosts] = useState<Post[]>(() => generatePosts(6))
+```
+- Initializes with 6 posts.
+- The callback form `() => generatePosts(6)` means it only runs once on mount (lazy initializer), not on every render.
+
+#### `useState` — loading flag
+
+```ts
+const [loading, setLoading] = useState(false)
+```
+`true` while the fake async fetch is running. Controls whether the spinner is shown.
+
+#### `useRef` — sentinel element
+
+```ts
+const sentinelRef = useRef<HTMLDivElement>(null)
+```
+Points to an invisible `<div>` at the very bottom of the feed. The `IntersectionObserver` watches this element.
+
+#### `useCallback` — `loadMore`
+
+```ts
+const loadMore = useCallback(() => {
+  setLoading(true)
+  setTimeout(() => {
+    setPosts(prev => [...prev, ...generatePosts(4)])
+    setLoading(false)
+  }, 800)
+}, [])
+```
+- `useCallback` with `[]` deps means the function reference is stable — it won't be recreated on each render.
+- Sets `loading = true`, waits 800ms (simulates a network call), then appends 4 new posts and sets `loading = false`.
+- Uses the functional update form `setPosts(prev => ...)` to safely append to existing state.
+
+#### `useEffect` — IntersectionObserver
+
+```ts
+useEffect(() => {
+  const sentinel = sentinelRef.current
+  if (!sentinel) return
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      if (entries[0].isIntersecting && !loading) loadMore()
+    },
+    { threshold: 0.1 }
+  )
+
+  observer.observe(sentinel)
+  return () => observer.disconnect()   // cleanup on unmount
+}, [loading, loadMore])
+```
+- Creates a native browser `IntersectionObserver` that fires whenever the sentinel div enters the viewport (10% visibility threshold).
+- When triggered: if not already loading, calls `loadMore()`.
+- The cleanup function `observer.disconnect()` prevents memory leaks when the component unmounts.
+- Re-runs when `loading` or `loadMore` changes so the observer always has the latest `loading` value.
+
+#### `toggleLike` — event handler
+
+```ts
+const toggleLike = (id: number) => {
+  setPosts(prev =>
+    prev.map(p =>
+      p.id === id
+        ? { ...p, liked: !p.liked, likes: p.liked ? p.likes - 1 : p.likes + 1 }
+        : p
+    )
+  )
+}
+```
+Finds the post by `id`, toggles its `liked` boolean, and adjusts the `likes` count accordingly. All other posts are returned unchanged (`p`).
+
+### JSX Structure
+
+```
+PostFeed()
+ └── <section id="post-feed">
+       ├── <h2>Explore</h2>
+       └── <div className="posts-grid">        ← CSS Grid (auto-fill, min 320px)
+             posts.map() → <article className="post-card">
+               ├── .post-header
+               │     ├── <img> avatar
+               │     ├── .post-meta (username + time)
+               │     └── ⋯ more button
+               ├── .post-image-wrap → <img loading="lazy">
+               ├── .post-actions
+               │     ├── ❤️/🤍 like button  (calls toggleLike)
+               │     ├── 💬 comment button
+               │     ├── 📤 share button
+               │     └── 🔖 bookmark button
+               ├── .post-likes   (formatted with toLocaleString)
+               ├── .post-caption
+               └── .post-comments
+       └── <div ref={sentinelRef}>             ← invisible trigger for IntersectionObserver
+             {loading && <div className="spinner" />}
+```
+
+---
+
+## 9. Styling Architecture
+
+| File | Scope | Approach |
+|---|---|---|
+| `index.css` | Global | CSS custom properties (design tokens), Tailwind import, body/root/heading base styles |
+| `App.css` | App-level | Section layouts (`#center`, `#next-steps`, `.ticks`, `#post-feed`), component styles |
+| Inline `style={{}}` | Component-local | Used in `Swiper.tsx` to override Tailwind preflight for Swiper's internal layout |
+| Tailwind classes | `Navbar.tsx` | Utility classes via `className=""` (dark overlay, spacing, responsive breakpoints) |
+
+**Design token flow:**
+```
+index.css :root { --accent: #aa3bff }
+    ↓
+App.css .post-avatar { border: 2px solid var(--accent-border) }
+    ↓
+Automatically switches in dark mode via @media (prefers-color-scheme: dark)
+```
+
+---
+
+## 10. Data Flow Diagram
+
+```
+main.tsx
+  └─ renders <App>
+        ├─ <Navbar>
+        │    └─ navigation[] array → mapped to <a> links
+        │    └─ Headless UI manages disclosure/menu state internally
+        │
+        ├─ <SliderSwiper>
+        │    └─ slides[] array → mapped to <SwiperSlide>
+        │    └─ Swiper library manages current slide index internally
+        │
+        └─ <PostFeed>
+             ├─ State: posts[]  ──────────────────────────────┐
+             ├─ State: loading                                │
+             ├─ Ref:   sentinelRef → IntersectionObserver     │
+             │              └─ on intersect → loadMore()      │
+             │                    └─ setTimeout 800ms         │
+             │                          └─ generatePosts(4) ──┘
+             │                               └─ appends to posts[]
+             └─ toggleLike(id) → immutable posts[] update
+```
+
+---
+
+## 11. Third-Party Libraries Summary
+
+| Package | Version | Used In | Purpose |
+|---|---|---|---|
+| `react` | 19 | All | UI rendering |
+| `react-dom` | 19 | `main.tsx` | DOM mounting |
+| `vite` | 8 | Build | Dev server & bundler |
+| `typescript` | 6 | All `.tsx` | Static typing |
+| `tailwindcss` | 4 | `index.css` | Utility CSS |
+| `@tailwindcss/vite` | 4 | `vite.config.ts` | Tailwind v4 Vite plugin |
+| `@headlessui/react` | 2 | `Navbar.tsx` | Accessible UI primitives |
+| `@heroicons/react` | 2 | `Navbar.tsx` | SVG icon set |
+| `swiper` | 12 | `Swiper.tsx` | Touch-friendly carousel |
